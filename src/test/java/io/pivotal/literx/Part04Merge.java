@@ -1,12 +1,13 @@
 package io.pivotal.literx;
 
+import org.junit.Test;
+
 import io.pivotal.literx.domain.User;
 import io.pivotal.literx.repository.ReactiveRepository;
 import io.pivotal.literx.repository.ReactiveUserRepository;
-import org.junit.Test;
+import io.pivotal.literx.test.TestSubscriber;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-import io.pivotal.literx.test.TestSubscriber;
 
 /**
  * Learn how to merge flux.
@@ -17,6 +18,8 @@ public class Part04Merge {
 
 	final static User MARIE = new User("mschrader", "Marie", "Schrader");
 	final static User MIKE = new User("mehrmantraut", "Mike", "Ehrmantraut");
+    final static User JOHN = new User("jodoe", "Joe", "Doe");
+    final static User JANE = new User("jadoe", "Jane", "Doe");
 
 	ReactiveRepository<User> repository1 = new ReactiveUserRepository(500);
 	ReactiveRepository<User> repository2 = new ReactiveUserRepository(MARIE, MIKE);
@@ -29,16 +32,35 @@ public class Part04Merge {
 		TestSubscriber
 				.subscribe(flux)
 				.await()
+                // NOTE: The result is not expected to be interleaved because of the delay added to repository1 (see constructor).
+                // If no delay was added, the values would have been truly interleaved.
+                // See next test for a real interleaved example.
 				.assertValues(MARIE, MIKE, User.SKYLER, User.JESSE, User.WALTER, User.SAUL)
 				.assertComplete();
 	}
 
-	// TODO Merge flux1 and flux2 values with interleave
-	Flux<User> mergeFluxWithInterleave(Flux<User> flux1, Flux<User> flux2) {
-		return null;
-	}
+    // TODO Merge flux1 and flux2 values with interleave
+    Flux<User> mergeFluxWithInterleave(Flux<User> flux1, Flux<User> flux2) {
+        return flux2.mergeWith(flux1);
+    }
 
-//========================================================================================
+    //========================================================================================
+
+    @Test
+    public void mergeWithInterleaveForReal() {
+
+        ReactiveRepository<User> repositoryA = new ReactiveUserRepository();
+        ReactiveRepository<User> repositoryB = new ReactiveUserRepository(MARIE, MIKE, JOHN, JANE);
+        Flux<User> flux = mergeFluxWithInterleave(repositoryA.findAll(), repositoryB.findAll());
+        TestSubscriber
+                .subscribe(flux)
+                .await()
+                // These are truly interleaved:
+                .assertValues(MARIE, User.SKYLER, MIKE, User.JESSE, JOHN, User.WALTER, JANE, User.SAUL)
+                .assertComplete();
+    }
+
+    //========================================================================================
 
 	@Test
 	public void mergeWithNoInterleave() {
@@ -52,7 +74,7 @@ public class Part04Merge {
 
 	// TODO Merge flux1 and flux2 values with no interleave (flux1 values, and then flux2 values)
 	Flux<User> mergeFluxWithNoInterleave(Flux<User> flux1, Flux<User> flux2) {
-		return null;
+		return flux1.concatWith(flux2);
 	}
 
 //========================================================================================
@@ -71,7 +93,7 @@ public class Part04Merge {
 
 	// TODO Create a Flux containing the values of the 2 Mono
 	Flux<User> createFluxFromMultipleMono(Mono<User> mono1, Mono<User> mono2) {
-		return null;
+		return mono1.concatWith(mono2);
 	}
 
 }
