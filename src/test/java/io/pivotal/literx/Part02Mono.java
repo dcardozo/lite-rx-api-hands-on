@@ -1,27 +1,27 @@
 package io.pivotal.literx;
 
+import java.time.Duration;
+
 import org.junit.Test;
 import reactor.core.publisher.Mono;
-import io.pivotal.literx.test.TestSubscriber;
+import reactor.test.StepVerifier;
 
 /**
  * Learn how to create Mono instances.
  *
  * @author Sebastien Deleuze
  * @see <a href="http://projectreactor.io/core/docs/api/reactor/core/publisher/Mono.html">Mono Javadoc</a>
- *
  */
-public class Part02CreateMono {
+public class Part02Mono {
 
 //========================================================================================
 
 	@Test
 	public void empty() {
 		Mono<String> mono = emptyMono();
-		TestSubscriber
-				.subscribe(mono)
-				.assertValueCount(0)
-				.assertComplete();
+		StepVerifier.create(mono)
+				.expectComplete()
+				.verify();
 	}
 
 	// TODO Return an empty Mono
@@ -32,12 +32,30 @@ public class Part02CreateMono {
 //========================================================================================
 
 	@Test
+	public void noSignal() {
+		Mono<String> mono = monoWithNoSignal();
+		StepVerifier
+				.create(mono)
+				.expectSubscription()
+				.expectNoEvent(Duration.ofSeconds(1))
+				.thenCancel()
+				.verify();
+	}
+
+	// TODO Return an Mono that never emit any signal
+	Mono<String> monoWithNoSignal() {
+		return null;
+	}
+
+//========================================================================================
+
+	@Test
 	public void fromValue() {
 		Mono<String> mono = fooMono();
-		TestSubscriber
-				.subscribe(mono)
-				.assertValues("foo")
-				.assertComplete();
+		StepVerifier.create(mono)
+				.expectNext("foo")
+				.expectComplete()
+				.verify();
 	}
 
 	// TODO Return a Mono that contains a "foo" value
@@ -50,10 +68,9 @@ public class Part02CreateMono {
 	@Test
 	public void error() {
 		Mono<String> mono = errorMono();
-		TestSubscriber
-				.subscribe(mono)
-				.assertError(IllegalStateException.class)
-				.assertNotComplete();
+		StepVerifier.create(mono)
+				.expectError(IllegalStateException.class)
+				.verify();
 	}
 
 	// TODO Create a Mono that emits an IllegalStateException

@@ -1,27 +1,29 @@
 package io.pivotal.literx;
 
+import java.time.Duration;
+import java.util.Arrays;
+
 import org.junit.Test;
 import reactor.core.publisher.Flux;
-import io.pivotal.literx.test.TestSubscriber;
+import reactor.test.StepVerifier;
 
 /**
  * Learn how to create Flux instances.
  *
  * @author Sebastien Deleuze
  * @see <a href="http://projectreactor.io/core/docs/api/reactor/core/publisher/Flux.html">Flux Javadoc</a>
- *
  */
-public class Part01CreateFlux {
+public class Part01Flux {
 
 //========================================================================================
 
 	@Test
 	public void empty() {
 		Flux<String> flux = emptyFlux();
-		TestSubscriber
-				.subscribe(flux)
-				.assertValueCount(0)
-				.assertComplete();
+
+		StepVerifier.create(flux)
+				.expectComplete()
+				.verify();
 	}
 
 	// TODO Return an empty Flux
@@ -34,10 +36,10 @@ public class Part01CreateFlux {
 	@Test
 	public void fromValues() {
 		Flux<String> flux = fooBarFluxFromValues();
-		TestSubscriber
-				.subscribe(flux)
-				.assertValues("foo", "bar")
-				.assertComplete();
+		StepVerifier.create(flux)
+				.expectNext("foo", "bar")
+				.expectComplete()
+				.verify();
 	}
 
 	// TODO Return a Flux that contains 2 values "foo" and "bar" without using an array or a collection
@@ -50,10 +52,10 @@ public class Part01CreateFlux {
 	@Test
 	public void fromList() {
 		Flux<String> flux = fooBarFluxFromList();
-		TestSubscriber
-				.subscribe(flux)
-				.assertValues("foo", "bar")
-				.assertComplete();
+		StepVerifier.create(flux)
+				.expectNext("foo", "bar")
+				.expectComplete()
+				.verify();
 	}
 
 	// TODO Create a Flux from a List that contains 2 values "foo" and "bar"
@@ -66,12 +68,10 @@ public class Part01CreateFlux {
 	@Test
 	public void error() {
 		Flux<String> flux = errorFlux();
-		TestSubscriber
-				.subscribe(flux)
-				.assertError(IllegalStateException.class)
-				.assertNotComplete();
+		StepVerifier.create(flux)
+				.expectError(IllegalStateException.class)
+				.verify();
 	}
-
 	// TODO Create a Flux that emits an IllegalStateException
 	Flux<String> errorFlux() {
 		return null;
@@ -80,30 +80,15 @@ public class Part01CreateFlux {
 //========================================================================================
 
 	@Test
-	public void neverTerminates() {
-		Flux<String> flux = neverTerminatedFlux();
-		TestSubscriber
-				.subscribe(flux)
-				.assertNotTerminated();
-	}
-
-	// TODO Create a Flux that never terminates
-	Flux<String> neverTerminatedFlux() {
-		return null;
-	}
-
-//========================================================================================
-
-	@Test
-	public void countEachSecond() {
+	public void countEach100ms() {
 		Flux<Long> flux = counter();
-		TestSubscriber
-				.subscribe(flux)
-				.assertNotTerminated()
-				.awaitAndAssertNextValues(0L, 1L, 2L);
+		StepVerifier.create(flux)
+				.expectNext(0L, 1L, 2L, 3L, 4L, 5L, 6L, 7L, 8L, 9L)
+				.expectComplete()
+				.verify();
 	}
 
-	// TODO Create a Flux that emits an increasing value each 100ms
+	// TODO Create a Flux that emits increasing values from 0 to 9 each 100ms
 	Flux<Long> counter() {
 		return null;
 	}

@@ -16,7 +16,7 @@ import reactor.core.publisher.Mono;
  *
  * @author Sebastien Deleuze
  */
-public class Part07ReactiveToBlocking {
+public class Part10ReactiveToBlocking {
 
 	ReactiveRepository<User> repository = new ReactiveUserRepository();
 
